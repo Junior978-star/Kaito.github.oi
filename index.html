@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+
+
+
+
+<html>
+
+
+
+
+<head>
+
+
+
+
+    <title>AURA SYSTEM 3 // LOG 001 // UNSTABLE</title>
+
+
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+
+
+
+    <script src="https://aframe.io"></script>
+
+
+
+
+    <style>
+
+
+
+
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier New', monospace; }
+
+
+
+
+        #console-ui { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; z-index: 10; pointer-events: none; }
+
+
+
+
+        #header { width: 100%; padding: 20px; background: linear-gradient(to bottom, rgba(0,255,255,0.2), transparent); color: #E0FFFF; text-align: left; font-size: 11px; letter-spacing: 2px; }
+
+
+
+
+        #status-box { margin-top: 50px; color: #00FFFF; background: rgba(0,10,20,0.85); padding: 20px; border-left: 4px solid #00FFFF; pointer-events: auto; min-width: 280px; }
+
+
+
+
+        .glitch { animation: pulse 1s infinite; }
+
+
+
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+
+
+
+        #downloadBtn { margin-bottom: 40px; padding: 15px 40px; background: rgba(0,255,255,0.1); color: #00FFFF; border: 2px solid #00FFFF; font-weight: bold; display: none; pointer-events: auto; }
+
+
+
+
+        #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #E0FFFF; opacity: 0; pointer-events: none; z-index: 20; }
+
+
+
+
+    </style>
+
+
+
+
+</head>
+
+
+
+
+<body>
+
+
+
+
+    <div id="flash"></div>
+
+
+
+
+    <div id="console-ui">
+
+
+
+
+        <div id="header">AURA_OS_V3 // BOOT_LOG_001 // CRITICAL_INSTABILITY</div>
+
+
+
+
+        <div id="status-box">
+
+
+
+
+            <div id="cmd-label" style="font-size: 10px; color: #888; margin-bottom: 5px;">SYSTEM: STANDBY</div>
+
+
+
+
+            <div id="status-text" class="glitch">TAP TO BOOT CONSOLE</div>
+
+
+
+
+        </div>
+
+
+
+
+        <button id="downloadBtn">SAVE REALITY LOG</button>
+
+
+
+
+    </div>
+
+
+
+
+    <a-scene embedded renderer="colorManagement: true; antialias: true" vr-mode-ui="enabled: false">
+
+
+
+
+        <a-camera id="main-cam" position="0 1.6 0" wasd-controls="enabled: false"></a-camera>
+
+
+
+
+        
+
+
+
+
+            <a-plane id="scanning-grid" rotation="-90 0 0" width="10" height="10"
+
+
+
+
+                     material="transparent: true; opacity: 0; color: #00FFFF; wireframe: true"
+
+
+
+
+                     visible="false"
+
+
+
+
+                     animation__fade="property: material.opacity; from: 0; to: 0.3; dur: 1000; startEvents: show">
+
+
+
+
+            </a-plane>
+
+
+
+
+            
+
+
+
+
+                <a-cylinder id="kaito-body" radius="0.25" height="1.8" color="#C0C0C0"
+
+
+
+
+                            material="metalness: 1; roughness: 0; emissive: #00FFFF; emissiveIntensity: 1; opacity: 0.8; transparent: true">
+
+
+
+
+                </a-cylinder>
+
+
+
+
+                <a-sphere position="0 1 0" radius="0.18" color="#E0FFFF"
+
+
+
+
+                          material="emissive: #E0FFFF; emissiveIntensity: 2">
+
+
+
+
+                </a-sphere>
+
+
+
+
+                <a-torus radius="0.4" radius-tubular="0.01" color="#00FFFF" rotation="90 0 0"
+
+
+
+
+                         animation="property: rotation; to: 90 360 0; loop: true; dur: 2000; easing: linear">
+
+
+
+
+                </a-torus>
+
+
+
+
+            
+
+
+
+
+        
+
+
+
+
+    </a-scene>
+
+
+
+
+    <script>
+
+
+
+
+        const statusText = document.getElementById('status-text');
+
+
+
+
+        const cmdLabel = document.getElementById('cmd-label');
+
+
+
+
+        const kaito = document.querySelector('#kaito-entity');
+
+
+
+
+        const kaitoBody = document.querySelector('#kaito-body');
+
+
+
+
+        const grid = document.querySelector('#scanning-grid');
+
+
+
+
+        const camera = document.querySelector('#main-cam');
+
+
+
+
+        const flash = document.getElementById('flash');
+
+
+
+
+        const downloadBtn = document.getElementById('downloadBtn');
+
+
+
+
+        const scene = document.querySelector('a-scene');
+
+
+
+
+        let isManifested = false;
+
+
+
+
+        let mediaRecorder;
+
+
+
+
+        let recordedChunks = [];
+
+
+
+
+        const tempVec = new THREE.Vector3(); // Reusable vector
+
+
+
+
+        scene.addEventListener('loaded', () => {
+
+
+
+
+            const canvas = scene.canvas;
+
+
+
+
+            const stream = canvas.captureStream(30);
+
+
+
+
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+
+
+
+
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+
+
+
+
+            mediaRecorder.onstop = () => {
+
+
+
+
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+
+
+
+
+                const url = URL.createObjectURL(blob);
+
+
+
+
+                downloadBtn.style.display = 'block';
+
+
+
+
+                downloadBtn.onclick = () => {
+
+
+
+
+                    const a = document.createElement('a');
+
+
+
+
+                    a.href = url;
+
+
+
+
+                    a.download = 'Log001-Unstable.webm';
+
+
+
+
+                    a.click();
+
+
+
+
+                };
+
+
+
+
+            };
+
+
+
+
+        });
+
+
+
+
+        window.addEventListener('click', () => {
+
+
+
+
+            if (!isManifested) {
+
+
+
+
+                initSpeech();
+
+
+
+
+                statusText.innerText = "LISTENING FOR 'AURA LOCK'...";
+
+
+
+
+            }
+
+
+
+
+        });
+
+
+
+
+        function initSpeech() {
+
+
+
+
+            const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+
+
+
+            if (!Speech) { statusText.innerText = "VOICE FAILED. INCOMPATIBLE BROWSER."; return; }
+
+
+
+
+            const recognition = new Speech();
+
+
+
+
+            recognition.continuous = true;
+
+
+
+
+            recognition.onresult = (event) => {
+
+
+
+
+                const result = event.results[event.results.length - 1][0].transcript.toUpperCase();
+
+
+
+
+                if (result.includes("AURA LOCK") && !isManifested) manifestKaito();
+
+
+
+
+            };
+
+
+
+
+            recognition.start();
+
+
+
+
+        }
+
+
+
+
+        function screenFlash() {
+
+
+
+
+            flash.style.opacity = '0.8';
+
+
+
+
+            setTimeout(() => { flash.style.opacity = '0'; }, 100);
+
+
+
+
+        }
+
+
+
+
+        function manifestKaito() {
+
+
+
+
+            isManifested = true;
+
+
+
+
+            cmdLabel.innerText = "SYSTEM: MANIFESTING";
+
+
+
+
+            statusText.innerText = "MANIFESTING KAITO LUNAR...";
+
+
+
+
+            statusText.classList.remove('glitch');
+
+
+
+
+            recordedChunks = [];
+
+
+
+
+            if (mediaRecorder.state === 'inactive') mediaRecorder.start();
+
+
+
+
+            screenFlash();
+
+
+
+
+            grid.setAttribute('visible', 'true');
+
+
+
+
+            grid.emit('show');
+
+
+
+
+            setTimeout(() => {
+
+
+
+
+                kaito.setAttribute('visible', 'true');
+
+
+
+
+                kaito.setAttribute('animation', 'property: position; from: 0 -2 0; to: 0 0 0; dur: 1500; easing: easeOutExpo');
+
+
+
+
+                cmdLabel.innerText = "SYSTEM: ACTIVE";
+
+
+
+
+                checkDistance(); 
+
+
+
+
+            }, 800);
+
+
+
+
+        }
+
+
+
+
+        function checkDistance() {
+
+
+
+
+            if (!isManifested) return;
+
+
+
+
+            camera.object3D.getWorldPosition(tempVec);
+
+
+
+
+            const kaitoPos = new THREE.Vector3(0, 0, -2);
+
+
+
+
+            const dist = tempVec.distanceTo(kaitoPos);
+
+
+
+
+            if (dist < 1.8) {
+
+
+
+
+                statusText.innerText = "WARNING: PROXIMITY CRITICAL";
+
+
+
+
+                kaitoBody.setAttribute('material', 'opacity', Math.random() * 0.4 + 0.3);
+
+
+
+
+                
+
+
+
+
+                // [Haptic Feedback] Vibrate phone when close
+
+
+
+
+                if (navigator.vibrate) navigator.vibrate(50); 
+
+
+
+
+                if (dist < 0.9) collapseSystem();
+
+
+
+
+            } else {
+
+
+
+
+                statusText.innerText = "AURA LOCK STABLE // CAPTURING...";
+
+
+
+
+            }
+
+
+
+
+            requestAnimationFrame(checkDistance);
+
+
+
+
+        }
+
+
+
+
+        function collapseSystem() {
+
+
+
+
+            kaito.setAttribute('visible', 'false');
+
+
+
+
+            grid.setAttribute('visible', 'false');
+
+
+
+
+            isManifested = false;
+
+
+
+
+            cmdLabel.innerText = "SYSTEM: COLLAPSE";
+
+
+
+
+            statusText.innerText = "ERROR: LUNAR SIGNAL LOST";
+
+
+
+
+            statusText.classList.add('glitch');
+
+
+
+
+            screenFlash();
+
+
+
+
+            if (mediaRecorder.state === 'recording') mediaRecorder.stop();
+
+
+
+
+        }
+
+
+
+
+    </script>
+
+
+
+
+</body>
+
+
+
+
+</html>
+
+
+
+
+<!DOCTYPE html>
+
+
+
+
+<html>
+
+
+
+
+<head>
+
+
+
+
+    <title>AURA SYSTEM 3 // LOG 001 // UNSTABLE</title>
+
+
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+
+
+
+    <script src="https://aframe.io"></script>
+
+
+
+
+    <style>
+
+
+
+
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier New', monospace; }
+
+
+
+
+        #console-ui { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; z-index: 10; pointer-events: none; }
+
+
+
+
+        #header { width: 100%; padding: 20px; background: linear-gradient(to bottom, rgba(0,255,255,0.2), transparent); color: #E0FFFF; text-align: left; font-size: 11px; letter-spacing: 2px; }
+
+
+
+
+        #status-box { margin-top: 50px; color: #00FFFF; background: rgba(0,10,20,0.85); padding: 20px; border-left: 4px solid #00FFFF; pointer-events: auto; min-width: 280px; }
+
+
+
+
+        .glitch { animation: pulse 1s infinite; }
+
+
+
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+
+
+
+        #downloadBtn { margin-bottom: 40px; padding: 15px 40px; background: rgba(0,255,255,0.1); color: #00FFFF; border: 2px solid #00FFFF; font-weight: bold; display: none; pointer-events: auto; }
+
+
+
+
+        #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #E0FFFF; opacity: 0; pointer-events: none; z-index: 20; }
+
+
+
+
+    </style>
+
+
+
+
+</head>
+
+
+
+
+<body>
+
+
+
+
+    <div id="flash"></div>
+
+
+
+
+    <div id="console-ui">
+
+
+
+
+        <div id="header">AURA_OS_V3 // BOOT_LOG_001 // CRITICAL_INSTABILITY</div>
+
+
+
+
+        <div id="status-box">
+
+
+
+
+            <div id="cmd-label" style="font-size: 10px; color: #888; margin-bottom: 5px;">SYSTEM: STANDBY</div>
+
+
+
+
+            <div id="status-text" class="glitch">TAP TO BOOT CONSOLE</div>
+
+
+
+
+        </div>
+
+
+
+
+        <button id="downloadBtn">SAVE REALITY LOG</button>
+
+
+
+
+    </div>
+
+
+
+
+    <a-scene embedded renderer="colorManagement: true; antialias: true" vr-mode-ui="enabled: false">
+
+
+
+
+        <a-camera id="main-cam" position="0 1.6 0" wasd-controls="enabled: false"></a-camera>
+
+
+
+
+        
+
+
+
+
+            <a-plane id="scanning-grid" rotation="-90 0 0" width="10" height="10"
+
+
+
+
+                     material="transparent: true; opacity: 0; color: #00FFFF; wireframe: true"
+
+
+
+
+                     visible="false"
+
+
+
+
+                     animation__fade="property: material.opacity; from: 0; to: 0.3; dur: 1000; startEvents: show">
+
+
+
+
+            </a-plane>
+
+
+
+
+            
+
+
+
+
+                <a-cylinder id="kaito-body" radius="0.25" height="1.8" color="#C0C0C0"
+
+
+
+
+                            material="metalness: 1; roughness: 0; emissive: #00FFFF; emissiveIntensity: 1; opacity: 0.8; transparent: true">
+
+
+
+
+                </a-cylinder>
+
+
+
+
+                <a-sphere position="0 1 0" radius="0.18" color="#E0FFFF"
+
+
+
+
+                          material="emissive: #E0FFFF; emissiveIntensity: 2">
+
+
+
+
+                </a-sphere>
+
+
+
+
+                <a-torus radius="0.4" radius-tubular="0.01" color="#00FFFF" rotation="90 0 0"
+
+
+
+
+                         animation="property: rotation; to: 90 360 0; loop: true; dur: 2000; easing: linear">
+
+
+
+
+                </a-torus>
+
+
+
+
+            
+
+
+
+
+        
+
+
+
+
+    </a-scene>
+
+
+
+
+    <script>
+
+
+
+
+        const statusText = document.getElementById('status-text');
+
+
+
+
+        const cmdLabel = document.getElementById('cmd-label');
+
+
+
+
+        const kaito = document.querySelector('#kaito-entity');
+
+
+
+
+        const kaitoBody = document.querySelector('#kaito-body');
+
+
+
+
+        const grid = document.querySelector('#scanning-grid');
+
+
+
+
+        const camera = document.querySelector('#main-cam');
+
+
+
+
+        const flash = document.getElementById('flash');
+
+
+
+
+        const downloadBtn = document.getElementById('downloadBtn');
+
+
+
+
+        const scene = document.querySelector('a-scene');
+
+
+
+
+        let isManifested = false;
+
+
+
+
+        let mediaRecorder;
+
+
+
+
+        let recordedChunks = [];
+
+
+
+
+        const tempVec = new THREE.Vector3(); // Reusable vector
+
+
+
+
+        scene.addEventListener('loaded', () => {
+
+
+
+
+            const canvas = scene.canvas;
+
+
+
+
+            const stream = canvas.captureStream(30);
+
+
+
+
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+
+
+
+
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+
+
+
+
+            mediaRecorder.onstop = () => {
+
+
+
+
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+
+
+
+
+                const url = URL.createObjectURL(blob);
+
+
+
+
+                downloadBtn.style.display = 'block';
+
+
+
+
+                downloadBtn.onclick = () => {
+
+
+
+
+                    const a = document.createElement('a');
+
+
+
+
+                    a.href = url;
+
+
+
+
+                    a.download = 'Log001-Unstable.webm';
+
+
+
+
+                    a.click();
+
+
+
+
+                };
+
+
+
+
+            };
+
+
+
+
+        });
+
+
+
+
+        window.addEventListener('click', () => {
+
+
+
+
+            if (!isManifested) {
+
+
+
+
+                initSpeech();
+
+
+
+
+                statusText.innerText = "LISTENING FOR 'AURA LOCK'...";
+
+
+
+
+            }
+
+
+
+
+        });
+
+
+
+
+        function initSpeech() {
+
+
+
+
+            const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+
+
+
+            if (!Speech) { statusText.innerText = "VOICE FAILED. INCOMPATIBLE BROWSER."; return; }
+
+
+
+
+            const recognition = new Speech();
+
+
+
+
+            recognition.continuous = true;
+
+
+
+
+            recognition.onresult = (event) => {
+
+
+
+
+                const result = event.results[event.results.length - 1][0].transcript.toUpperCase();
+
+
+
+
+                if (result.includes("AURA LOCK") && !isManifested) manifestKaito();
+
+
+
+
+            };
+
+
+
+
+            recognition.start();
+
+
+
+
+        }
+
+
+
+
+        function screenFlash() {
+
+
+
+
+            flash.style.opacity = '0.8';
+
+
+
+
+            setTimeout(() => { flash.style.opacity = '0'; }, 100);
+
+
+
+
+        }
+
+
+
+
+        function manifestKaito() {
+
+
+
+
+            isManifested = true;
+
+
+
+
+            cmdLabel.innerText = "SYSTEM: MANIFESTING";
+
+
+
+
+            statusText.innerText = "MANIFESTING KAITO LUNAR...";
+
+
+
+
+            statusText.classList.remove('glitch');
+
+
+
+
+            recordedChunks = [];
+
+
+
+
+            if (mediaRecorder.state === 'inactive') mediaRecorder.start();
+
+
+
+
+            screenFlash();
+
+
+
+
+            grid.setAttribute('visible', 'true');
+
+
+
+
+            grid.emit('show');
+
+
+
+
+            setTimeout(() => {
+
+
+
+
+                kaito.setAttribute('visible', 'true');
+
+
+
+
+                kaito.setAttribute('animation', 'property: position; from: 0 -2 0; to: 0 0 0; dur: 1500; easing: easeOutExpo');
+
+
+
+
+                cmdLabel.innerText = "SYSTEM: ACTIVE";
+
+
+
+
+                checkDistance(); 
+
+
+
+
+            }, 800);
+
+
+
+
+        }
+
+
+
+
+        function checkDistance() {
+
+
+
+
+            if (!isManifested) return;
+
+
+
+
+            camera.object3D.getWorldPosition(tempVec);
+
+
+
+
+            const kaitoPos = new THREE.Vector3(0, 0, -2);
+
+
+
+
+            const dist = tempVec.distanceTo(kaitoPos);
+
+
+
+
+            if (dist < 1.8) {
+
+
+
+
+                statusText.innerText = "WARNING: PROXIMITY CRITICAL";
+
+
+
+
+                kaitoBody.setAttribute('material', 'opacity', Math.random() * 0.4 + 0.3);
+
+
+
+
+                
+
+
+
+
+                // [Haptic Feedback] Vibrate phone when close
+
+
+
+
+                if (navigator.vibrate) navigator.vibrate(50); 
+
+
+
+
+                if (dist < 0.9) collapseSystem();
+
+
+
+
+            } els
+
+
+
+
+e {
+
+
+
+
+                statusText.innerText = "AURA LOCK STABLE // CAPTURING...";
+
+
+
+
+            }
+
+
+
+
+            requestAnimationFrame(checkDistance);
+
+
+
+
+        }
+
+
+
+
+        function collapseSystem() {
+
+
+
+
+            kaito.setAttribute('visible', 'false');
+
+
+
+
+            grid.setAttribute('visible', 'false');
+
+
+
+
+            is
